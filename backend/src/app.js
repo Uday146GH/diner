@@ -1,18 +1,25 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
+
+const authRoutes = require('./routes/auth');
 
 const app = express();
 
-// Middleware (these process every request)
+// Middleware
 app.use(cors({
   origin: process.env.APP_URL || 'http://localhost:3000',
   credentials: true
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser()); // For cookies
 
-// Health check endpoint (to verify server is running)
+// Routes
+app.use('/api/auth', authRoutes);
+
+// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'Backend is running ✅', 
@@ -21,7 +28,12 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Error handling middleware (catches all errors)
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Endpoint not found' });
+});
+
+// Error handling middleware (global)
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(err.statusCode || 500).json({ 
