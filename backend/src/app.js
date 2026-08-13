@@ -5,6 +5,7 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 const restaurantRoutes = require('./routes/restaurants');
+const menuRoutes = require('./routes/menu');
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use(cookieParser());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/restaurants', restaurantRoutes);
+app.use('/api/menu', menuRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
