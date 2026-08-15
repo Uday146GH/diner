@@ -14,6 +14,9 @@ import Dashboard from './pages/owner/Dashboard';
 import CreateRestaurant from './pages/owner/CreateRestaurant';
 import MenuManagement from './pages/owner/MenuManagement';
 
+// Customer pages
+import Menu from './pages/customer/Menu';
+
 // Home page
 function Home() {
   return (
@@ -45,8 +48,11 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/register" element={<Register />} />
+              
+              {/* Public customer routes */}
+              <Route path="/r/:slug" element={<Menu />} />
 
-              {/* Protected routes */}
+              {/* Protected owner routes */}
               <Route
                 path="/owner/dashboard"
                 element={
