@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import { useCart } from '../../hooks/useCart';
 
 export default function Menu() {
   const { slug } = useParams();
+  const navigate = useNavigate();
+  const { addToCart, itemCount } = useCart();
   const [restaurant, setRestaurant] = useState(null);
   const [menu, setMenu] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [addedItem, setAddedItem] = useState(null);
 
   useEffect(() => {
     fetchMenu();
@@ -23,10 +27,22 @@ export default function Menu() {
       setMenu(response.data.menu);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to load menu');
-      setLoading(false);
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleAddToCart(item) {
+    addToCart({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      description: item.description,
+      isVeg: item.is_veg
+    }, slug);
+    
+    setAddedItem(item.name);
+    setTimeout(() => setAddedItem(null), 2000);
   }
 
   if (loading) {
@@ -59,7 +75,6 @@ export default function Menu() {
     );
   }
 
-  // Filter items based on search
   const filteredMenu = menu.map(category => ({
     ...category,
     items: category.items.filter(item =>
@@ -70,15 +85,28 @@ export default function Menu() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <div className="bg-white shadow sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold mb-2">🍽️ {restaurant.name}</h1>
-          {restaurant.description && (
-            <p className="text-gray-600 text-sm mb-3">{restaurant.description}</p>
-          )}
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h1 className="text-2xl font-bold mb-2">🍽️ {restaurant.name}</h1>
+              {restaurant.description && (
+                <p className="text-gray-600 text-sm">{restaurant.description}</p>
+              )}
+            </div>
+            <button
+              onClick={() => navigate('/cart')}
+              className="relative bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold"
+            >
+              🛒 Cart
+              {itemCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
+                  {itemCount}
+                </span>
+              )}
+            </button>
+          </div>
           
-          {/* Search */}
           <div className="relative">
             <input
               type="text"
@@ -92,7 +120,14 @@ export default function Menu() {
         </div>
       </div>
 
-      {/* Menu Content */}
+      {addedItem && (
+        <div className="max-w-4xl mx-auto px-4 mt-4">
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded">
+            ✅ {addedItem} added to cart!
+          </div>
+        </div>
+      )}
+
       <div className="max-w-4xl mx-auto px-4 py-8">
         {filteredMenu.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-8 text-center">
@@ -101,7 +136,6 @@ export default function Menu() {
         ) : (
           filteredMenu.map(category => (
             <div key={category.id} className="mb-8">
-              {/* Category Header */}
               <div className="mb-4">
                 <h2 className="text-xl font-bold text-gray-800">{category.name}</h2>
                 {category.description && (
@@ -110,14 +144,12 @@ export default function Menu() {
                 <div className="h-1 bg-blue-500 mt-2 w-12"></div>
               </div>
 
-              {/* Items Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {category.items.map(item => (
                   <div
                     key={item.id}
                     className="bg-white rounded-lg shadow hover:shadow-md transition p-4"
                   >
-                    {/* Item Image Placeholder */}
                     <div className="w-full h-32 bg-gray-200 rounded-lg mb-3 flex items-center justify-center">
                       {item.image_url ? (
                         <img src={item.image_url} alt={item.name} className="w-full h-full object-cover rounded-lg" />
@@ -126,7 +158,6 @@ export default function Menu() {
                       )}
                     </div>
 
-                    {/* Item Info */}
                     <div className="mb-3">
                       <div className="flex items-start justify-between mb-1">
                         <h3 className="font-semibold text-gray-800">{item.name}</h3>
@@ -139,12 +170,14 @@ export default function Menu() {
                       )}
                     </div>
 
-                    {/* Price & Action */}
                     <div className="flex items-center justify-between">
                       <span className="text-lg font-bold text-blue-600">
                         ₹{parseFloat(item.price).toFixed(2)}
                       </span>
-                      <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-semibold">
+                      <button
+                        onClick={() => handleAddToCart(item)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-semibold"
+                      >
                         Add
                       </button>
                     </div>
@@ -156,7 +189,6 @@ export default function Menu() {
         )}
       </div>
 
-      {/* Restaurant Info Footer */}
       <div className="bg-white border-t mt-8">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

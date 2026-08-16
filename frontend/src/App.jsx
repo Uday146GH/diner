@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import { RestaurantProvider } from './context/RestaurantContext';
 import { MenuProvider } from './context/MenuContext';
+import { CartProvider } from './context/CartContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -16,6 +17,7 @@ import MenuManagement from './pages/owner/MenuManagement';
 
 // Customer pages
 import Menu from './pages/customer/Menu';
+import Cart from './pages/customer/Cart';
 
 // Home page
 function Home() {
@@ -42,46 +44,49 @@ function App() {
     <AuthProvider>
       <RestaurantProvider>
         <MenuProvider>
-          <Router>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Home />} />
-              <Route path="/auth/login" element={<Login />} />
-              <Route path="/auth/register" element={<Register />} />
-              
-              {/* Public customer routes */}
-              <Route path="/r/:slug" element={<Menu />} />
+          <CartProvider>
+            <Router>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<Home />} />
+                <Route path="/auth/login" element={<Login />} />
+                <Route path="/auth/register" element={<Register />} />
+                
+                {/* Public customer routes */}
+                <Route path="/r/:slug" element={<Menu />} />
+                <Route path="/cart" element={<Cart />} />
 
-              {/* Protected owner routes */}
-              <Route
-                path="/owner/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/owner/create-restaurant"
-                element={
-                  <ProtectedRoute>
-                    <CreateRestaurant />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/owner/menu"
-                element={
-                  <ProtectedRoute>
-                    <MenuManagement />
-                  </ProtectedRoute>
-                }
-              />
+                {/* Protected owner routes */}
+                <Route
+                  path="/owner/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/owner/create-restaurant"
+                  element={
+                    <ProtectedRoute>
+                      <CreateRestaurant />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/owner/menu"
+                  element={
+                    <ProtectedRoute>
+                      <MenuManagement />
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Catch all */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Router>
+                {/* Catch all */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Router>
+          </CartProvider>
         </MenuProvider>
       </RestaurantProvider>
     </AuthProvider>
