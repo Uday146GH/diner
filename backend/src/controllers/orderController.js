@@ -66,6 +66,54 @@ async function placeOrder(req, res) {
   }
 }
 
+// Track order by order number (public)
+async function trackOrder(req, res) {
+  try {
+    const { orderNumber } = req.params;
+
+    if (!orderNumber) {
+      return res.status(400).json({ error: 'Order number is required' });
+    }
+
+    // Query to find order by order_number
+    const query = `
+      SELECT o.id, o.order_number, o.restaurant_id, o.customer_name, o.customer_phone, o.special_instructions, o.status, o.subtotal, o.total, o.created_at, o.updated_at,
+             json_agg(json_build_object('id', oi.id, 'menuItemId', oi.menu_item_id, 'itemName', oi.item_name, 'itemPrice', oi.item_price, 'quantity', oi.quantity)) as items
+      FROM orders o
+      LEFT JOIN order_items oi ON o.id = oi.order_id
+      WHERE o.order_number = $1
+      GROUP BY o.id;
+    `;
+
+    const result = await require('../config/database').query(query, [orderNumber]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const order = result.rows[0];
+
+    res.json({
+      success: true,
+      order: {
+        id: order.id,
+        orderNumber: order.order_number,
+        customerName: order.customer_name,
+        customerPhone: order.customer_phone,
+        specialInstructions: order.special_instructions,
+        status: order.status,
+        subtotal: order.subtotal,
+        total: order.total,
+        createdAt: order.created_at,
+        updatedAt: order.updated_at,
+        items: order.items
+      }
+    });
+  } catch (err) {
+    console.error('Track order error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
 // Get order details
 async function getOrder(req, res) {
   try {
@@ -162,6 +210,7 @@ async function updateOrderStatus(req, res) {
 
 module.exports = {
   placeOrder,
+  trackOrder,
   getOrder,
   getRestaurantOrders,
   updateOrderStatus
